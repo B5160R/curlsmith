@@ -7,11 +7,6 @@ import (
 	"github.com/b5160r/curlsmith/internal/domain"
 )
 
-type CollectionStore interface {
-	Load(path string) (domain.Collection, error)
-	Save(path string, collection domain.Collection) error
-}
-
 type SaveRequestToCollectionUseCase struct {
 	Store CollectionStore
 }

@@ -4,33 +4,15 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
-	"regexp"
 
 	"github.com/b5160r/curlsmith/internal/domain"
 )
 
-type FileStore struct {
-	Path string
-}
+// FileStore implements app.CollectionStore backed by JSON files.
+type FileStore struct{}
 
-type CollectionStore struct{}
-
-func (CollectionStore) Load(path string) (domain.Collection, error) {
-	return (&FileStore{Path: path}).Load()
-}
-
-func (CollectionStore) Save(path string, collection domain.Collection) error {
-	return (&FileStore{Path: path}).Save(collection)
-}
-
-type CollectionLoader struct{}
-
-func (CollectionLoader) Load(path string) (domain.Collection, error) {
-	return (&FileStore{Path: path}).Load()
-}
-
-func (fs *FileStore) Save(collection domain.Collection) error {
-	if fs.Path == "" {
+func (FileStore) Save(path string, collection domain.Collection) error {
+	if path == "" {
 		return errors.New("storage path is required")
 	}
 
@@ -39,15 +21,15 @@ func (fs *FileStore) Save(collection domain.Collection) error {
 		return err
 	}
 
-	return os.WriteFile(fs.Path, data, 0o644)
+	return os.WriteFile(path, data, 0o644)
 }
 
-func (fs *FileStore) Load() (domain.Collection, error) {
-	if fs.Path == "" {
+func (FileStore) Load(path string) (domain.Collection, error) {
+	if path == "" {
 		return domain.Collection{}, errors.New("storage path is required")
 	}
 
-	data, err := os.ReadFile(fs.Path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return domain.Collection{}, nil
@@ -70,28 +52,4 @@ func (fs *FileStore) Load() (domain.Collection, error) {
 	}
 
 	return collection, nil
-}
-
-// {{base_url}} → actual value
-
-var variablePattern = regexp.MustCompile(`\{\{\s*([a-zA-Z0-9_.-]+)\s*\}\}`)
-
-func Resolve(input string, vars map[string]string) string {
-	if len(vars) == 0 || input == "" {
-		return input
-	}
-
-	return variablePattern.ReplaceAllStringFunc(input, func(match string) string {
-		parts := variablePattern.FindStringSubmatch(match)
-		if len(parts) != 2 {
-			return match
-		}
-
-		value, ok := vars[parts[1]]
-		if !ok {
-			return match
-		}
-
-		return value
-	})
 }

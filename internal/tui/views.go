@@ -15,12 +15,12 @@ func (m *model) renderForgePanel() string {
 	)
 
 	if m.mode == buildMode {
-		methodField := m.styles.methodField(m.focusIndex == buildFocusMethod).Render(methods[m.methodIndex])
-		nameField := m.styles.inputWrap(m.focusIndex == buildFocusName, m.insertMode).Render(m.nameInput.View())
-		urlField := m.styles.inputWrap(m.focusIndex == buildFocusURL, m.insertMode).Render(m.urlInput.View())
-		collectionPathField := m.styles.inputWrap(m.focusIndex == buildFocusCollectionPath, m.insertMode).Render(m.collectionPathInput.View())
-		headersField := m.styles.inputWrap(m.focusIndex == buildFocusHeaders, m.insertMode).Render(m.headersInput.View())
-		bodyField := m.styles.inputWrap(m.focusIndex == buildFocusBody, m.insertMode).Render(m.bodyInput.View())
+		methodField := m.styles.methodField(m.focusIndex == int(buildFocusMethod)).Render(methods[m.methodIndex])
+		nameField := m.styles.inputWrap(m.focusIndex == int(buildFocusName), m.insertMode).Render(m.nameInput.View())
+		urlField := m.styles.inputWrap(m.focusIndex == int(buildFocusURL), m.insertMode).Render(m.urlInput.View())
+		collectionPathField := m.styles.inputWrap(m.focusIndex == int(buildFocusCollectionPath), m.insertMode).Render(m.collectionPathInput.View())
+		headersField := m.styles.inputWrap(m.focusIndex == int(buildFocusHeaders), m.insertMode).Render(m.headersInput.View())
+		bodyField := m.styles.inputWrap(m.focusIndex == int(buildFocusBody), m.insertMode).Render(m.bodyInput.View())
 
 		content = lipgloss.JoinVertical(
 			lipgloss.Left,
@@ -34,8 +34,8 @@ func (m *model) renderForgePanel() string {
 			m.renderField("Body", bodyField),
 		)
 	} else {
-		pathField := m.styles.inputWrap(m.focusIndex == loadFocusPath, m.insertMode).Render(m.collectionPathInput.View())
-		requestField := m.styles.requestListWrap(m.focusIndex == loadFocusRequests).Render(m.renderStoredRequests())
+		pathField := m.styles.inputWrap(m.focusIndex == int(loadFocusPath), m.insertMode).Render(m.collectionPathInput.View())
+		requestField := m.styles.requestListWrap(m.focusIndex == int(loadFocusRequests)).Render(m.renderStoredRequests())
 
 		content = lipgloss.JoinVertical(
 			lipgloss.Left,
@@ -192,9 +192,9 @@ func (m model) responseContent() string {
 
 func (m model) responseFocused() bool {
 	if m.mode == buildMode {
-		return m.focusIndex == buildFocusResponse
+		return m.focusIndex == int(buildFocusResponse)
 	}
-	return m.focusIndex == loadFocusResponse
+	return m.focusIndex == int(loadFocusResponse)
 }
 
 func (m model) footerText() string {

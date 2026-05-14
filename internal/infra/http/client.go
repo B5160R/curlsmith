@@ -2,6 +2,7 @@ package http
 
 import (
 	"bytes"
+	"context"
 	"io"
 	stdhttp "net/http"
 	"time"
@@ -9,13 +10,24 @@ import (
 	"github.com/b5160r/curlsmith/internal/domain"
 )
 
+const DefaultTimeout = 30 * time.Second
+
 type Client struct {
 	HTTPClient *stdhttp.Client
+	Timeout    time.Duration
 }
 
 func (c *Client) Do(req domain.Request) (domain.Response, error) {
 	body := bytes.NewBufferString(req.Body)
-	httpReq, err := stdhttp.NewRequest(req.Method, req.URL, body)
+
+	timeout := c.Timeout
+	if timeout == 0 {
+		timeout = DefaultTimeout
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	httpReq, err := stdhttp.NewRequestWithContext(ctx, req.Method, req.URL, body)
 	if err != nil {
 		return domain.Response{}, err
 	}
@@ -37,7 +49,7 @@ func (c *Client) Do(req domain.Request) (domain.Response, error) {
 		return domain.Response{}, err
 	}
 	defer httpResp.Body.Close()
-	request_duration := time.Since(start)
+	duration := time.Since(start)
 
 	responseBody, err := io.ReadAll(httpResp.Body)
 	if err != nil {
@@ -48,6 +60,6 @@ func (c *Client) Do(req domain.Request) (domain.Response, error) {
 		Status:   httpResp.StatusCode,
 		Headers:  map[string][]string(httpResp.Header.Clone()),
 		Body:     responseBody,
-		Duration: request_duration,
+		Duration: duration,
 	}, nil
 }

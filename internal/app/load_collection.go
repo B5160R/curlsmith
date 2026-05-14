@@ -7,12 +7,8 @@ import (
 	"github.com/b5160r/curlsmith/internal/domain"
 )
 
-type CollectionLoader interface {
-	Load(path string) (domain.Collection, error)
-}
-
 type LoadCollectionUseCase struct {
-	Loader CollectionLoader
+	Loader CollectionStore
 }
 
 func (uc *LoadCollectionUseCase) Execute(path string) (domain.Collection, error) {

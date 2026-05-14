@@ -1,0 +1,21 @@
+{
+  "variables": {},
+  "requests": [
+    {
+      "id": "",
+      "name": "star wars test",
+      "method": "GET",
+      "url": "https://swapi.dev/api/people/3",
+      "headers": {},
+      "body": ""
+    },
+    {
+      "id": "",
+      "name": "star wars test 2",
+      "method": "GET",
+      "url": "https://swapi.dev/api/starship/6",
+      "headers": {},
+      "body": ""
+    }
+  ]
+}

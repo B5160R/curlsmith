@@ -8,12 +8,9 @@ import (
 	"github.com/b5160r/curlsmith/internal/domain"
 )
 
-type RequestSender interface {
-	Do(req domain.Request) (domain.Response, error)
-}
-
 type SendRequestUseCase struct {
-	Client RequestSender
+	Client   RequestSender
+	Vars     map[string]string
 }
 
 func (uc *SendRequestUseCase) Execute(req domain.Request) (domain.Response, error) {
@@ -29,6 +26,17 @@ func (uc *SendRequestUseCase) Execute(req domain.Request) (domain.Response, erro
 	req.URL = strings.TrimSpace(req.URL)
 	if req.URL == "" {
 		return domain.Response{}, errors.New("request URL is required")
+	}
+
+	// Resolve collection variables in URL and body.
+	if len(uc.Vars) > 0 {
+		req.URL = domain.Resolve(req.URL, uc.Vars)
+		req.Body = domain.Resolve(req.Body, uc.Vars)
+		for key, values := range req.Headers {
+			for i, v := range values {
+				req.Headers[key][i] = domain.Resolve(v, uc.Vars)
+			}
+		}
 	}
 
 	if _, err := url.ParseRequestURI(req.URL); err != nil {

@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-
-	"github.com/b5160r/curlsmith/internal/domain"
 )
 
 func parseHeaders(raw string) (map[string][]string, error) {
@@ -96,25 +94,4 @@ func findMethodIndex(method string) int {
 		}
 	}
 	return 0
-}
-
-func findSavedRequestIndex(requests []domain.Request, name, url string) int {
-	name = strings.TrimSpace(name)
-	url = strings.TrimSpace(url)
-
-	if name != "" {
-		for index, request := range requests {
-			if strings.EqualFold(strings.TrimSpace(request.Name), name) {
-				return index
-			}
-		}
-	}
-
-	for index, request := range requests {
-		if strings.TrimSpace(request.URL) == url {
-			return index
-		}
-	}
-
-	return -1
 }

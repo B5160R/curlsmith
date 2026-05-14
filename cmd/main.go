@@ -9,13 +9,13 @@ import (
 )
 
 func main() {
-	collectionStore := storageinfra.CollectionStore{}
+	store := storageinfra.FileStore{}
 	useCase := &app.SendRequestUseCase{Client: &httpinfra.Client{}}
-	loadCollection := &app.LoadCollectionUseCase{Loader: collectionStore}
-	saveRequest := &app.SaveRequestToCollectionUseCase{Store: collectionStore}
+	loadCollection := &app.LoadCollectionUseCase{Loader: store}
+	saveRequest := &app.SaveRequestToCollectionUseCase{Store: store}
 
 	p := tea.NewProgram(tui.NewModel(useCase, loadCollection, saveRequest), tea.WithAltScreen())
-	if err := p.Start(); err != nil {
+	if _, err := p.Run(); err != nil {
 		panic(err)
 	}
 }

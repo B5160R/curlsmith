@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
@@ -10,7 +11,7 @@ import (
 
 func TestFileStoreSaveLoadRoundTrip(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "collection.json")
-	store := &FileStore{Path: path}
+	store := FileStore{}
 
 	want := domain.Collection{
 		Variables: map[string]string{"base_url": "https://api.example.com"},
@@ -24,11 +25,11 @@ func TestFileStoreSaveLoadRoundTrip(t *testing.T) {
 		},
 	}
 
-	if err := store.Save(want); err != nil {
+	if err := store.Save(path, want); err != nil {
 		t.Fatalf("Save returned error: %v", err)
 	}
 
-	got, err := store.Load()
+	got, err := store.Load(path)
 	if err != nil {
 		t.Fatalf("Load returned error: %v", err)
 	}
@@ -40,9 +41,9 @@ func TestFileStoreSaveLoadRoundTrip(t *testing.T) {
 
 func TestFileStoreLoadMissingFileReturnsEmptyCollection(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "missing.json")
-	store := &FileStore{Path: path}
+	store := FileStore{}
 
-	got, err := store.Load()
+	got, err := store.Load(path)
 	if err != nil {
 		t.Fatalf("Load returned error: %v", err)
 	}
@@ -56,24 +57,31 @@ func TestFileStoreLoadMissingFileReturnsEmptyCollection(t *testing.T) {
 	}
 }
 
-func TestResolveReplacesKnownVariables(t *testing.T) {
-	input := "{{base_url}}/users/{{user_id}}"
-	vars := map[string]string{
-		"base_url": "https://api.example.com",
-		"user_id":  "42",
-	}
-
-	got := Resolve(input, vars)
-	want := "https://api.example.com/users/42"
-	if got != want {
-		t.Fatalf("expected %q, got %q", want, got)
+func TestFileStoreSaveEmptyPathReturnsError(t *testing.T) {
+	store := FileStore{}
+	err := store.Save("", domain.Collection{})
+	if err == nil {
+		t.Fatal("expected error when path is empty")
 	}
 }
 
-func TestResolveLeavesUnknownVariables(t *testing.T) {
-	got := Resolve("{{base_url}}/{{missing}}", map[string]string{"base_url": "https://api.example.com"})
-	want := "https://api.example.com/{{missing}}"
-	if got != want {
-		t.Fatalf("expected %q, got %q", want, got)
+func TestFileStoreLoadEmptyPathReturnsError(t *testing.T) {
+	store := FileStore{}
+	_, err := store.Load("")
+	if err == nil {
+		t.Fatal("expected error when path is empty")
+	}
+}
+
+func TestFileStoreLoadInvalidJSONReturnsError(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "bad.json")
+	if err := os.WriteFile(path, []byte("{not valid json"), 0o644); err != nil {
+		t.Fatalf("failed to write test file: %v", err)
+	}
+
+	store := FileStore{}
+	_, err := store.Load(path)
+	if err == nil {
+		t.Fatal("expected error for invalid JSON")
 	}
 }
